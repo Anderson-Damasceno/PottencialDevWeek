@@ -1,5 +1,5 @@
+
 namespace src.Models;
-using System.Collections.Generic;
 
 public class Person
 {

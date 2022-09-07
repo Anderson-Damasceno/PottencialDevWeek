@@ -17,9 +17,11 @@ public class Contract
         Paid = paid;
         CreationDate = DateTime.Now;
     }
-    public string? TokenId {get; set;}
-    public double Value {get;set;}
-    public bool Paid {get; set;}
-    public DateTime CreationDate {get; set;}
+    public int Id { get; set; }
+    public string? TokenId { get; set; }
+    public double Value { get; set; }
+    public bool Paid { get; set; }
+    public DateTime CreationDate { get; set; }
+    public int PersonId { get; set; }
 
 }

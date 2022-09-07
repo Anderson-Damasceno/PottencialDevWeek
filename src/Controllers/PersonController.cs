@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using src.Models;
+using src.Persistence;
 
 namespace src.Controllers;
 
@@ -7,29 +9,41 @@ namespace src.Controllers;
 [Route("[controller]")]
 public class PersonController : ControllerBase
 {
-    [HttpGet]
-    public Person GetPerson()
+    private DataBaseContext? _context { get; set; }
+
+    public PersonController(DataBaseContext context)
     {
-        var someone = new Person("Jonh", 30, "15935745602");
-        var newContract = new Contract("abc123", 200.00);
-        someone.contracts.Add(newContract);
-        return someone;
+        _context = context;
+    }
+
+    [HttpGet]
+    public List<Person> GetPerson()
+    {
+        // var someone = new Person("Jonh", 30, "15935745602");
+        // var newContract = new Contract("abc123", 200.00);
+        // someone.contracts.Add(newContract);
+        return _context!.People!.Include(p => p.contracts).ToList();
     }
 
     [HttpPost]
-    public Person Create(Person someone)
+    public Person Create([FromBody] Person someone)
     {
+        _context!.People!.Add(someone);
+        _context.SaveChanges();
         return someone;
     }
 
     [HttpPut("{id}")]
-    public string Update([FromRoute]int id, [FromBody]Person someone)
+    public string Update([FromRoute] int id, [FromBody] Person someone)
     {
-        return "id data" + id + "updated";
+        _context!.People!.Update(someone);
+        _context.SaveChanges();
+
+        return "updated";
     }
 
     [HttpDelete("{id}")]
-    public string Delete([FromRoute]int id)
+    public string Delete([FromRoute] int id)
     {
         return "deleted id" + id;
     }
