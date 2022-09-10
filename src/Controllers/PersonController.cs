@@ -1,7 +1,10 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Net;
+
 using src.Models;
 using src.Persistence;
+
 
 namespace src.Controllers;
 
@@ -17,35 +20,65 @@ public class PersonController : ControllerBase
     }
 
     [HttpGet]
-    public List<Person> GetPerson()
+    public ActionResult<List<Person>> GetPerson()
     {
-        // var someone = new Person("Jonh", 30, "15935745602");
-        // var newContract = new Contract("abc123", 200.00);
-        // someone.contracts.Add(newContract);
-        return _context!.People!.Include(p => p.contracts).ToList();
+        var result = _context!.People!.Include(p => p.contracts).ToList();
+
+        if (!result.Any()) return NoContent();
+
+        return Ok(result);
     }
 
     [HttpPost]
-    public Person Create([FromBody] Person someone)
+    public ActionResult<Person> Create([FromBody] Person someone)
     {
-        _context!.People!.Add(someone);
-        _context.SaveChanges();
-        return someone;
+        try
+        {
+            _context!.People!.Add(someone);
+            _context.SaveChanges();
+
+        }
+        catch (System.Exception)
+        {
+            
+            return BadRequest();
+        }
+        
+        return Created("Created",someone);
     }
 
     [HttpPut("{id}")]
-    public string Update([FromRoute] int id, [FromBody] Person someone)
+    public ActionResult<Object> Update([FromRoute] int id, [FromBody] Person someone)
     {
-        _context!.People!.Update(someone);
-        _context.SaveChanges();
+        var result = _context!.People!.SingleOrDefault(e => e.Id == id);
+        if(result is null) return NotFound(new {msg = "Record not found", status = HttpStatusCode.NotFound});
 
-        return "updated";
+        try
+        {
+            _context!.People!.Update(someone);
+            _context.SaveChanges();
+
+        }
+        catch (System.Exception)
+        {
+
+            return BadRequest(new {msg = "There was id update error" + id, status = HttpStatusCode.BadRequest});
+        }
+
+        return Ok(new { msg = "id data" + id + "updated", statu = HttpStatusCode.OK });
     }
 
     [HttpDelete("{id}")]
-    public string Delete([FromRoute] int id)
+    public ActionResult<Object> Delete([FromRoute] int id)
     {
-        return "deleted id" + id;
+        var result = _context!.People!.SingleOrDefault(e => e.Id == id);
+
+        if (result is null) return BadRequest(new { msg = "Absent content, invalid request", status = HttpStatusCode.BadRequest });
+
+        _context.Remove(result);
+        _context.SaveChanges();
+
+        return Ok(new { msg = "deleted id" + id, status = HttpStatusCode.OK });
     }
 
 }
